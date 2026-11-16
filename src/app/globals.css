@@ -1968,6 +1968,348 @@ label {
 .action-panel .rating-note {
   color: #707c91;
 }
+.editor-body select {
+  width: 100%;
+  min-width: 0;
+  margin-top: 7px;
+  padding: 10px 11px;
+  border: 1px solid #e0e5ef;
+  border-radius: 5px;
+  background: #fff;
+  color: #505c73;
+  font-size: 11px;
+  outline: 0;
+}
+.editor-body select:focus {
+  border-color: #95a6e9;
+  box-shadow: 0 0 0 2px #eef1ff;
+}
+.pricing-method {
+  margin-bottom: 19px;
+}
+.rate-calculator {
+  border: 1px solid #e3e8f4;
+  border-radius: 9px;
+  padding: 19px;
+  background: #fcfdff;
+}
+.rate-sheet-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 23px;
+}
+.rate-sheet-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.rate-sheet-heading strong {
+  font-size: 12px;
+  color: #56647c;
+  font-weight: 550;
+}
+.rate-sheet-heading p {
+  font-size: 9px;
+  color: #747f94;
+  line-height: 1.7;
+  margin-top: 4px;
+}
+.rate-version {
+  display: inline-flex;
+  padding: 4px 7px;
+  color: #5d70bf;
+  background: #edf1ff;
+  border: 1px solid #dfe6fa;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.rate-main-fields {
+  margin-bottom: 20px;
+  gap: 17px;
+}
+.rate-main-fields input[readonly] {
+  background: #f3f6fc;
+  color: #72809a;
+  font-size: 10px;
+}
+.rate-profile-summary {
+  align-self: start;
+  display: grid;
+  gap: 6px;
+  font-size: 9px;
+  line-height: 1.65;
+  color: #6e7e98;
+  padding: 13px;
+  margin-top: 4px;
+  border: 1px solid #e6ebf5;
+  background: #f4f7fd;
+  border-radius: 6px;
+}
+.rate-profile-summary strong {
+  font-weight: 550;
+  color: #59709b;
+}
+.editor-body .rate-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #6a7890;
+  cursor: pointer;
+}
+.editor-body .rate-checkbox input[type="checkbox"] {
+  appearance: auto;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--blue);
+}
+.rate-checkbox > strong {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 500;
+  color: #60769a;
+}
+.roundtrip-check {
+  border: 1px solid #e3e8f5;
+  padding: 12px;
+  border-radius: 6px;
+  background: #f1f5ff;
+  margin: 0 0 20px;
+}
+.rate-extras {
+  margin-top: 4px;
+  border: 1px solid #e4e9f4;
+  border-radius: 7px;
+  background: #fff;
+}
+.rate-extras > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  cursor: pointer;
+  color: #6b7f9e;
+  font-size: 10px;
+}
+.rate-extras > summary > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rate-extras > summary > span:last-child {
+  color: #818ca0;
+  font-size: 9px;
+}
+.rate-extras[open] > summary {
+  border-bottom: 1px solid #edf0f6;
+}
+.rate-extras-body {
+  padding: 15px 13px;
+}
+.rate-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px 20px;
+  margin-bottom: 23px;
+}
+.rate-options .rate-checkbox {
+  align-items: flex-start;
+}
+.rate-options input[type="checkbox"] {
+  transform: translateY(2px);
+}
+.rate-calendar-note {
+  display: flex;
+  gap: 8px;
+  color: #7987a1;
+  margin: 17px 0;
+  align-items: flex-start;
+}
+.rate-calendar-note svg {
+  margin-top: 2px;
+}
+.rate-calendar-note p {
+  font-size: 9px;
+  line-height: 1.85;
+}
+.rate-preview {
+  border: 1px solid #dfe6f4;
+  background: #fff;
+  border-radius: 7px;
+  padding: 16px;
+}
+.rate-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 13px;
+  border-bottom: 1px solid #edf0f6;
+}
+.rate-preview-heading > strong {
+  color: #60749a;
+  font-size: 11px;
+  font-weight: 550;
+}
+.rate-preview-heading > span {
+  color: #8390a7;
+  font-size: 8px;
+  text-align: right;
+}
+.rate-preview-line {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 13px;
+  color: #6f809d;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.rate-preview-line > strong {
+  font-weight: 500;
+  color: #5f7194;
+  white-space: nowrap;
+}
+.rate-preview-line small {
+  display: block;
+  color: #8391a8;
+  font-size: 9px;
+}
+.rate-preview-total {
+  border-top: 1px dashed #dbe2f1;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #50698e;
+  font-size: 11px;
+}
+.rate-preview-total > strong:last-child {
+  font-size: 21px;
+  font-weight: 550;
+  letter-spacing: -0.5px;
+}
+.rate-warning {
+  padding: 9px 11px;
+  border: 1px solid #ede2c7;
+  background: #fffaf0;
+  color: #947c49 !important;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.8;
+  margin-top: 12px !important;
+}
+.rate-incomplete {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 13px;
+  color: #7186aa;
+  background: #f0f4fd;
+  border: 1px solid #e1e8f7;
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.rate-incomplete > svg {
+  margin-top: 2px;
+}
+.rate-rule-notes {
+  color: #7988a2;
+  font-size: 9px;
+  line-height: 1.9;
+  margin-top: 17px;
+}
+.rate-rule-notes > summary {
+  cursor: pointer;
+  color: #6a7f9f;
+}
+.rate-rule-notes ul {
+  margin: 8px 0 0;
+  padding-left: 17px;
+  list-style: disc;
+}
+.rate-rule-notes li {
+  margin-bottom: 6px;
+}
+.saved-rate-summary {
+  border: 1px solid #e3e9f5;
+  background: #f7f9fe;
+  border-radius: 7px;
+  padding: 13px;
+  margin-bottom: 20px;
+}
+.saved-rate-summary > strong {
+  display: block;
+  color: #677c9d;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+.saved-rate-summary > p {
+  font-size: 9px;
+  line-height: 1.85;
+  color: #7c8ba3;
+  margin-top: 5px;
+}
+@media (max-width: 700px) {
+  .rate-calculator {
+    padding: 14px 12px;
+  }
+  .rate-sheet-heading {
+    align-items: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .rate-sheet-heading strong {
+    font-size: 10px;
+  }
+  .rate-sheet-heading .rate-version {
+    margin-left: 39px;
+  }
+  .rate-main-fields {
+    grid-template-columns: 1fr;
+  }
+  .rate-main-fields .rate-profile-summary {
+    margin-top: 0;
+  }
+  .rate-options {
+    grid-template-columns: 1fr;
+  }
+  .rate-extras-body > .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .rate-extras > summary {
+    font-size: 9px;
+    padding-inline: 10px;
+  }
+  .rate-extras > summary > span:last-child {
+    font-size: 8px;
+  }
+  .rate-preview {
+    padding: 12px;
+  }
+  .rate-preview-heading {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .rate-preview-heading > span {
+    text-align: left;
+  }
+  .rate-preview-line {
+    font-size: 9px;
+  }
+}
 .sr-only {
   position: absolute;
   width: 1px;

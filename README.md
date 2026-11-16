@@ -13,6 +13,12 @@ npm run dev -- --hostname 127.0.0.1
 
 Open http://localhost:3000. No Axis credentials are needed to create and save quotes.
 
+## Call from other applications
+
+The versioned external API at `/api/v1` supports rate calculation, quote creation/search/updates, acceptance, and the existing AXIS order workflow. Configure the server-only `QUOTE_API_KEY` (at least 32 characters) and send `Authorization: Bearer <key>`. Access is disabled until a key is set. Optional browser access uses the exact origins in `QUOTE_API_ALLOWED_ORIGINS`.
+
+See [API setup, endpoints, and working Node.js/curl examples](docs/api.md). External API authentication covers `/api/v1`; the workspace and original internal routes still require private hosting or separate workspace authentication. Keep the shared API key in the calling app's backend.
+
 ## Quote workflow
 
 1. Create a quote with a custom REF or leave REF blank for an automatic `REF-00001` reference.
@@ -24,6 +30,14 @@ Open http://localhost:3000. No Axis credentials are needed to create and save qu
 Accepted quotes are locked. Reopening an unsubmitted quote clears acceptance and preserves the earlier acceptance in its activity history. Reconfirm acceptance after revising it.
 
 Charges use integer cents and the total is calculated on the server. Versions reject stale edits, and database transactions prevent concurrent submission attempts. No sample quotes or simulated orders are added to the workspace.
+
+## Rate-sheet pricing
+
+New quotes default to the user-supplied ATL Medical Couriers 2026 sheet. Select the rate vehicle class, enter mileage, actual cargo capacity, waiting time, and the confirmed current FSC. Charges update automatically from shipment weight and dates. Optional accessorials include dry ice, airport attempts, HazMat, box-truck equipment, and manually quoted helper hours. Existing manual quotes remain editable in manual mode.
+
+The mileage formulas were confirmed by the user: small packages use the greater of $38 or miles × $1.60; the three larger classes include 20 miles and charge their per-mile rate beyond that. Waiting, weight, Atlanta-local surcharges, and trip multipliers are applied separately. Each saved quote retains a rate-sheet snapshot. See [the extracted rules, assumptions, and calculation examples](docs/atl-rate-sheet.md).
+
+The current FSC percentage and scope are not supplied by the sheet. They must be explicitly entered; 0 means an explicitly confirmed zero surcharge. These calculated quote totals still follow the Axis integration's pricing behavior described below.
 
 ## Axis configuration
 
@@ -69,3 +83,5 @@ npm run test:e2e
 ```
 
 Unit/integration tests cover persistence across store restarts, REF collisions, stale edits, acceptance locking, validated amounts/dates, concurrent submission, ambiguous outcomes, and the documented Axis HTTP contract using test-only fake responses. Browser tests use Microsoft Edge on desktop and a mobile viewport, a separate temporary database, and empty Axis configuration. They create, reopen, accept, revise, and search real saved quotes without sending external orders. They do not touch the workspace database. Screenshots are written to `.artifacts/`.
+
+External API tests cover bearer authentication, disabled configuration, CORS preflight, request validation, quote search/pagination, version conflicts, acceptance locks, and rate calculation without saving. Browser tests also run a separate local partner app that calculates, saves, and accepts through the external API, then opens the saved quote in the workspace. Both test servers use isolated test configuration.

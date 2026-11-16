@@ -10,6 +10,8 @@ import {
 } from "@/lib/quotes";
 import { Icon } from "./icon";
 import { Modal } from "./modal";
+import { blankAtlPricing, calculateAtlRate } from "@/lib/atl-rates";
+import { RateCalculator } from "./rate-calculator";
 
 function localDate(iso: string) {
   if (!iso) return "";
@@ -105,12 +107,30 @@ export function QuoteEditor({
   onSave: (quote: Quote) => void;
 }) {
   const [form, setForm] = useState<QuoteInput>(() =>
-    quote ? structuredClone(quote) : blankQuote(),
+    quote
+      ? structuredClone(quote)
+      : { ...blankQuote(), pricing: blankAtlPricing() },
   );
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const set = <K extends keyof QuoteInput>(key: K, value: QuoteInput[K]) =>
     setForm((form) => ({ ...form, [key]: value }));
+  let ratePreview: ReturnType<typeof calculateAtlRate> | null = null;
+  let rateError = "";
+  if (form.pricing) {
+    try {
+      ratePreview = calculateAtlRate(form.pricing, {
+        weight: form.weight,
+        start: form.pickupFrom,
+        end: form.deliveryTo,
+      });
+    } catch (error) {
+      rateError =
+        error instanceof Error
+          ? error.message
+          : "Complete the pricing details.";
+    }
+  }
   async function save(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -329,109 +349,144 @@ export function QuoteEditor({
             <h3>
               <span>03</span>Quote charges<small>USD</small>
             </h3>
-            <div className="charge-labels">
-              <span>Description</span>
-              <span>Qty</span>
-              <span>Rate</span>
-              <span>Amount</span>
-              <span />
-            </div>
-            {form.charges.map((charge, index) => (
-              <div className="charge-row" key={index}>
-                <input
-                  aria-label={`Charge ${index + 1} description`}
-                  required
-                  value={charge.description}
-                  maxLength={200}
-                  onChange={(e) =>
-                    set(
-                      "charges",
-                      form.charges.map((item, i) =>
-                        i === index
-                          ? { ...item, description: e.target.value }
-                          : item,
-                      ),
-                    )
-                  }
-                />
-                <input
-                  aria-label={`Charge ${index + 1} quantity`}
-                  type="number"
-                  min="1"
-                  max="10000"
-                  required
-                  value={charge.quantity}
-                  onChange={(e) =>
-                    set(
-                      "charges",
-                      form.charges.map((item, i) =>
-                        i === index
-                          ? { ...item, quantity: Number(e.target.value) }
-                          : item,
-                      ),
-                    )
-                  }
-                />
-                <div className="money-input">
-                  <span>$</span>
-                  <input
-                    aria-label={`Charge ${index + 1} rate`}
-                    type="number"
-                    min="0"
-                    max="1000000"
-                    step="0.01"
-                    required
-                    value={charge.rateCents / 100}
-                    onChange={(e) =>
-                      set(
-                        "charges",
-                        form.charges.map((item, i) =>
-                          i === index
-                            ? {
-                                ...item,
-                                rateCents: Math.round(
-                                  Number(e.target.value) * 100,
-                                ),
-                              }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
+            <label className="pricing-method">
+              Pricing method
+              <select
+                aria-label="Pricing method"
+                value={form.pricing ? "atl" : "manual"}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    pricing:
+                      event.target.value === "atl"
+                        ? blankAtlPricing()
+                        : undefined,
+                    charges: ratePreview?.charges ?? current.charges,
+                  }))
+                }
+              >
+                <option value="atl">
+                  ATL Medical Couriers · 2026 rate sheet
+                </option>
+                <option value="manual">
+                  Manual / separately quoted charges
+                </option>
+              </select>
+            </label>
+            {form.pricing ? (
+              <RateCalculator
+                input={form.pricing}
+                onChange={(input) => set("pricing", input)}
+                result={ratePreview}
+                error={rateError}
+              />
+            ) : (
+              <>
+                <div className="charge-labels">
+                  <span>Description</span>
+                  <span>Qty</span>
+                  <span>Rate</span>
+                  <span>Amount</span>
+                  <span />
                 </div>
-                <span className="charge-amount">
-                  {money(charge.quantity * charge.rateCents)}
-                </span>
+                {form.charges.map((charge, index) => (
+                  <div className="charge-row" key={index}>
+                    <input
+                      aria-label={`Charge ${index + 1} description`}
+                      required
+                      value={charge.description}
+                      maxLength={200}
+                      onChange={(e) =>
+                        set(
+                          "charges",
+                          form.charges.map((item, i) =>
+                            i === index
+                              ? { ...item, description: e.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
+                    <input
+                      aria-label={`Charge ${index + 1} quantity`}
+                      type="number"
+                      min="1"
+                      max="10000"
+                      required
+                      value={charge.quantity}
+                      onChange={(e) =>
+                        set(
+                          "charges",
+                          form.charges.map((item, i) =>
+                            i === index
+                              ? { ...item, quantity: Number(e.target.value) }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
+                    <div className="money-input">
+                      <span>$</span>
+                      <input
+                        aria-label={`Charge ${index + 1} rate`}
+                        type="number"
+                        min="0"
+                        max="1000000"
+                        step="0.01"
+                        required
+                        value={charge.rateCents / 100}
+                        onChange={(e) =>
+                          set(
+                            "charges",
+                            form.charges.map((item, i) =>
+                              i === index
+                                ? {
+                                    ...item,
+                                    rateCents: Math.round(
+                                      Number(e.target.value) * 100,
+                                    ),
+                                  }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                    </div>
+                    <span className="charge-amount">
+                      {money(charge.quantity * charge.rateCents)}
+                    </span>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      aria-label={`Remove charge ${index + 1}`}
+                      disabled={form.charges.length === 1}
+                      onClick={() =>
+                        set(
+                          "charges",
+                          form.charges.filter((_, i) => i !== index),
+                        )
+                      }
+                    >
+                      <Icon name="close" size={15} />
+                    </button>
+                  </div>
+                ))}
                 <button
-                  className="icon-button"
                   type="button"
-                  aria-label={`Remove charge ${index + 1}`}
-                  disabled={form.charges.length === 1}
+                  className="text-button add-charge"
+                  disabled={form.charges.length >= 50}
                   onClick={() =>
-                    set(
-                      "charges",
-                      form.charges.filter((_, i) => i !== index),
-                    )
+                    set("charges", [
+                      ...form.charges,
+                      { description: "", quantity: 1, rateCents: 0 },
+                    ])
                   }
                 >
-                  <Icon name="close" size={15} />
+                  <Icon name="plus" size={16} />
+                  Add a charge
                 </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="text-button add-charge"
-              disabled={form.charges.length >= 50}
-              onClick={() =>
-                set("charges", [
-                  ...form.charges,
-                  { description: "", quantity: 1, rateCents: 0 },
-                ])
-              }
-            >
-              <Icon name="plus" size={16} />
-              Add a charge
-            </button>
+              </>
+            )}
             <label className="notes-field">
               Notes & special instructions
               <textarea
@@ -448,7 +503,11 @@ export function QuoteEditor({
           <div>
             <span>Quote total</span>
             <strong>
-              {money(totalCharges(form.charges))}
+              {form.pricing
+                ? ratePreview
+                  ? money(ratePreview.snapshot.totalCents)
+                  : "Complete pricing"
+                : money(totalCharges(form.charges))}
               <small>USD</small>
             </strong>
           </div>
@@ -461,7 +520,10 @@ export function QuoteEditor({
             >
               Cancel
             </button>
-            <button className="button primary" disabled={busy}>
+            <button
+              className="button primary"
+              disabled={busy || (!!form.pricing && !ratePreview)}
+            >
               <Icon
                 name={busy ? "refresh" : "check"}
                 size={17}

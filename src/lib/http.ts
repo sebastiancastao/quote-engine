@@ -40,10 +40,39 @@ export async function readBody(
     if (!["http:", "https:"].includes(source.protocol) || source.host !== host)
       throw new AppError(403, "Cross-origin changes are not allowed.");
   }
-  if (!request.headers.get("content-type")?.includes("application/json"))
+  return readJsonBody(request);
+}
+
+/** JSON parsing shared by the browser routes and authenticated external API. */
+export async function readJsonBody(
+  request: Request,
+): Promise<Record<string, unknown>> {
+  if (
+    request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !==
+    "application/json"
+  )
     throw new AppError(415, "Use JSON for this request.");
-  const raw = await request.text();
-  if (raw.length > 100_000) throw new AppError(413, "Quote data is too large.");
+  const reader = request.body?.getReader();
+  const decoder = new TextDecoder();
+  let raw = "";
+  let size = 0;
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > 100_000) {
+          await reader.cancel();
+          throw new AppError(413, "Quote data is too large.");
+        }
+        raw += decoder.decode(value, { stream: true });
+      }
+      raw += decoder.decode();
+    } finally {
+      reader.releaseLock();
+    }
+  }
   let body: unknown;
   try {
     body = JSON.parse(raw);

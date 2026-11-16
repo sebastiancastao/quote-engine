@@ -1,6 +1,68 @@
 import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
+test("ATL sheet calculates a real quote, saves its rate snapshot, and restores it by REF", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  await expect(page.getByText("Loading your workspace…")).toBeHidden();
+  await page.getByRole("button", { name: "New quote", exact: true }).click();
+  const editor = page.getByRole("dialog", {
+    name: "Create a new quote",
+    exact: true,
+  });
+  await expect(
+    editor.getByLabel("Pricing method", { exact: true }),
+  ).toHaveValue("atl");
+  await editor.getByLabel("Customer name").fill("ATL Rate Test");
+  await editor.getByLabel("Pickup window · from").fill("2026-12-01T10:00");
+  await editor.getByLabel("Delivery window · to").fill("2026-12-01T14:00");
+  await editor.getByLabel("Route distance (miles)").fill("50");
+  await editor.getByLabel("Vehicle cargo capacity (lb)").fill("200");
+  await expect(
+    editor.getByRole("button", { name: "Save quote", exact: true }),
+  ).toBeDisabled();
+  await editor.getByLabel("Confirmed FSC (%)").fill("10");
+  await editor
+    .getByLabel("Fuel surcharge applies to")
+    .selectOption("transport");
+  await expect(
+    editor.getByText("$88.00", { exact: true }).first(),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: `.artifacts/atl-calculator-${info.project.name}.png`,
+    scale: "css",
+  });
+  const saveResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/quotes") &&
+      response.request().method() === "POST",
+  );
+  await editor.getByRole("button", { name: "Save quote", exact: true }).click();
+  const saved = (await (await saveResponse).json()).quote;
+  expect(saved.totalCents).toBe(8800);
+  expect(saved.rateSnapshot.oneWayBaseCents).toBe(8000);
+  expect(saved.rateSnapshot.fuelCents).toBe(800);
+  expect(saved.pricing.mileageBasis).toBe("included-20");
+  await page.reload();
+  const details = page.getByRole("dialog", {
+    name: `Quote ${saved.ref}`,
+    exact: true,
+  });
+  await expect(details).toBeVisible();
+  await expect(
+    details.getByText("ATL 2026 · v1", { exact: true }),
+  ).toBeVisible();
+  await expect(details.getByText("$88.00", { exact: true })).toBeVisible();
+});
+
 test("save, reopen by REF, accept, revise and search a quote without pretending Axis is connected", async ({
   page,
 }, info) => {
@@ -33,6 +95,9 @@ test("save, reopen by REF, accept, revise and search a quote without pretending 
     exact: true,
   });
   const ref = `TEST-${info.project.name.toUpperCase()}-${Date.now()}`;
+  await editor
+    .getByLabel("Pricing method", { exact: true })
+    .selectOption("manual");
   await editor.getByLabel("Customer name").fill("Northstar Medical");
   await editor.getByLabel("Customer email").fill("dispatch@example.com");
   await editor.getByLabel("REF number").fill(ref);

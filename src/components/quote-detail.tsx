@@ -3,6 +3,7 @@ import { useState } from "react";
 import { money, statusLabels, type Quote, type AxisStatus } from "@/lib/quotes";
 import { Icon } from "./icon";
 import { Modal } from "./modal";
+import { ATL_VEHICLES } from "@/lib/atl-rates";
 const dateTime = (value: string) =>
   value
     ? new Date(value).toLocaleString(undefined, {
@@ -197,6 +198,33 @@ export function QuoteDetail({
           <h3>
             Quote breakdown<span>USD</span>
           </h3>
+          {quote.rateSnapshot && quote.pricing ? (
+            <div className="saved-rate-summary">
+              <span className="rate-version">ATL 2026 · v1</span>
+              <strong>
+                {ATL_VEHICLES[quote.rateSnapshot.vehicleClass].label}
+              </strong>
+              <p>
+                {quote.pricing.miles} miles ·{" "}
+                {quote.pricing.trip === "roundtrip"
+                  ? "150% roundtrip"
+                  : quote.pricing.trip === "return"
+                    ? "50% return"
+                    : "One way"}{" "}
+                · {quote.pricing.fuelPercent}% FSC · Atlanta time
+              </p>
+              <p>
+                {quote.pricing.mileageBasis === "included-20"
+                  ? "First 20 miles included for vans/trucks; small package uses minimum vs. all-mile pricing."
+                  : "Greater of minimum or all miles × vehicle rate."}
+              </p>
+              {quote.rateSnapshot.warnings.map((warning) => (
+                <p className="rate-warning" key={warning}>
+                  {warning}
+                </p>
+              ))}
+            </div>
+          ) : null}
           <div className="price-lines">
             {quote.charges.map((charge, index) => (
               <div key={index}>

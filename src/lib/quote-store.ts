@@ -1,6 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { calculateAtlRate } from "./atl-rates";
 import {
   AppError,
   assertReady,
@@ -85,6 +86,15 @@ export class QuoteStore {
         ref,
         status: "draft",
         totalCents: totalCharges(input.charges),
+        ...(input.pricing
+          ? {
+              rateSnapshot: calculateAtlRate(input.pricing, {
+                weight: input.weight,
+                start: input.pickupFrom,
+                end: input.deliveryTo,
+              }).snapshot,
+            }
+          : {}),
         version: 1,
         createdAt: now,
         updatedAt: now,
@@ -133,6 +143,14 @@ export class QuoteStore {
         ...quote,
         ...input,
         ref: quote.ref,
+        pricing: input.pricing,
+        rateSnapshot: input.pricing
+          ? calculateAtlRate(input.pricing, {
+              weight: input.weight,
+              start: input.pickupFrom,
+              end: input.deliveryTo,
+            }).snapshot
+          : undefined,
         totalCents: totalCharges(input.charges),
         events: [
           ...quote.events,

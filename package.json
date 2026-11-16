@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/quotes.test.ts tests/axis.test.ts",
+    "test": "tsx --test tests/quotes.test.ts tests/axis.test.ts tests/rates.test.ts tests/api.test.ts",
     "test:e2e": "playwright test"
   },
   "engines": {

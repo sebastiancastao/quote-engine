@@ -1,3 +1,10 @@
+import {
+  calculateAtlRate,
+  RateError,
+  type AtlPricingInput,
+  type AtlRateSnapshot,
+} from "./atl-rates";
+
 export type QuoteStatus =
   "draft" | "sent" | "accepted" | "submitting" | "submitted" | "review";
 
@@ -33,6 +40,7 @@ export interface QuoteInput {
   weight: number;
   charges: Charge[];
   notes: string;
+  pricing?: AtlPricingInput;
 }
 
 export interface Quote extends QuoteInput {
@@ -47,6 +55,7 @@ export interface Quote extends QuoteInput {
   orderTrackingId?: string;
   submittedAt?: string;
   lastError?: string;
+  rateSnapshot?: AtlRateSnapshot;
   events: { label: string; at: string }[];
 }
 
@@ -203,37 +212,52 @@ export function parseQuote(value: unknown): QuoteInput {
     }
     result[key] = number;
   }
-  if (
-    !Array.isArray(data.charges) ||
-    !data.charges.length ||
-    data.charges.length > 50
-  )
-    throw new AppError(400, "Add between 1 and 50 quote charges.");
-  result.charges = data.charges.map((value) => {
-    const charge = object(value);
-    if (
-      !Number.isSafeInteger(charge.quantity) ||
-      Number(charge.quantity) < 1 ||
-      Number(charge.quantity) > 10000 ||
-      !Number.isSafeInteger(charge.rateCents) ||
-      Number(charge.rateCents) < 0
-    ) {
-      throw new AppError(
-        400,
-        "Charges require a positive whole quantity and a nonnegative amount in cents.",
-      );
+  if (data.pricing !== undefined && data.pricing !== null) {
+    try {
+      const rated = calculateAtlRate(data.pricing, {
+        weight: result.weight,
+        start: result.pickupFrom,
+        end: result.deliveryTo,
+      });
+      result.pricing = rated.input;
+      result.charges = rated.charges;
+    } catch (error) {
+      if (error instanceof RateError) throw new AppError(422, error.message);
+      throw error;
     }
-    return {
-      description: textField(
-        charge.description,
-        "charge description",
-        200,
-        true,
-      ),
-      quantity: Number(charge.quantity),
-      rateCents: Number(charge.rateCents),
-    };
-  });
+  } else {
+    if (
+      !Array.isArray(data.charges) ||
+      !data.charges.length ||
+      data.charges.length > 50
+    )
+      throw new AppError(400, "Add between 1 and 50 quote charges.");
+    result.charges = data.charges.map((value) => {
+      const charge = object(value);
+      if (
+        !Number.isSafeInteger(charge.quantity) ||
+        Number(charge.quantity) < 1 ||
+        Number(charge.quantity) > 10000 ||
+        !Number.isSafeInteger(charge.rateCents) ||
+        Number(charge.rateCents) < 0
+      ) {
+        throw new AppError(
+          400,
+          "Charges require a positive whole quantity and a nonnegative amount in cents.",
+        );
+      }
+      return {
+        description: textField(
+          charge.description,
+          "charge description",
+          200,
+          true,
+        ),
+        quantity: Number(charge.quantity),
+        rateCents: Number(charge.rateCents),
+      };
+    });
+  }
   const total = totalCharges(result.charges);
   if (!Number.isSafeInteger(total) || total > 100_000_000)
     throw new AppError(
